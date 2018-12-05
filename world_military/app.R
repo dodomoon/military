@@ -25,37 +25,74 @@ personnel_per <- read_csv("data/personnel_per/API_MS.MIL.TOTL.TF.ZS_DS2_en_csv_v
   # convert percentage into integers
   mutate(per = parse_number(per))
 
+personnel_meta <- read_csv("data/personnel/Metadata_Country_API_MS.MIL.TOTL.P1_DS2_en_csv_v2_10225185.csv")[, -c(4, 6)]
+
+non_countries <- personnel_meta %>%
+  filter(is.na(Region)) %>%
+  select(TableName)
+
+regions <- non_countries %>%
+  filter(!(str_detect(TableName, "\\(")),
+         !(str_detect(TableName, "mall states")),
+         !(str_detect(TableName, "dividend")),
+         !(str_detect(TableName, "IDA")),
+         !(str_detect(TableName, "IBRD")),
+         !(str_detect(TableName, "income")),
+         TableName != "Fragile and conflict affected situations",
+         TableName != "Euro area",
+         TableName != "Least developed countries: UN classification")
+
+income_groups <- personnel_meta %>%
+  select(IncomeGroup) %>%
+  distinct() %>%
+  na.omit()
+
 # Define UI for application
 ui <- navbarPage(
   title = "World Military Data",
   theme = shinytheme("sandstone"),
-  tabPanel(
-    title = "Introduction",
-    mainPanel(
-        "This Shiny app looks at military data for each country. While all the data is downloaded from The World Bank's DataBank,
-        each dataset has its own unique original source.
-        Personnel data is from the International Institute for Strategic Studies.
-        Arms Transfers data is from the Stockholm International Peace Research Institute."
-    )
-  ),
   tabPanel(
     title = "Personnel",
     sidebarLayout(
       sidebarPanel(
         selectInput(inputId = "countries",
                     label = "Select Country(s)",
-                    choices = personnel$country,
+                    # list only countries
+                    # remove non_countries that are in the country column
+                    choices = personnel$country[!personnel$country %in% non_countries$TableName],
                     multiple = TRUE,
-                    selected = "United States")
+                    selected = "United States"),
+        selectInput(inputId = "regions",
+                    label = "Select Region(s)",
+                    choices = regions$TableName,
+                    multiple = TRUE),
+        selectInput(inputId = "income_groups",
+                    label = "Select Income Group(s)",
+                    choices = income_groups$IncomeGroup,
+                    multiple = TRUE),
+        h6("Armed forces personnel are active duty military personnel, including
+           paramilitary forces if the training, organization, equipment, and control
+           suggest they may be used to support or replace regular military forces.
+           Labor force comprises all people who meet the International Labour
+           Organization's definition of the economically active population."),
+        h6("Income groups are based on GNI per capita calculated using the World Bank Atlas method.
+           Low-income economies are those with GNI per capita of $995 or less in 2017;
+           lower middle-income economies are those with GNI per capita between $996 and $3,895 in 2017;
+           upper middle-income economies are those with GNI per capita between $3,896 and $12,055 in 2017;
+           high-income economies are those with GNI per capita of $12,056 or more in 2017."),
+        h6("Similarily, the organizational categories such as OECD and European Union are based
+           on membership status in 2017."),
+        h6("Source: International Institute for Strategic Studies, The Military Balance."),
+        uiOutput("git_url")
       ),
       mainPanel(
         tabsetPanel(
           tabPanel(
-            title = "Armed Forces Personnel, Total",
+            title = "Total",
             plotOutput("personnelPlot")
           ),
           tabPanel(
-            title = "Armed Forces Personnel, % of Total Labor Force",
+            title = "% of Labor Force",
             plotOutput("personnelperPlot")
           )
         )
@@ -91,32 +128,35 @@ ui <- navbarPage(
 
 # Define the server logic
 server <- function(input, output) {
-  # provide URL to Github code
-  url <- a("github", href="https://github.com/dodomoon/world_military")
-  
   # output link to Github code
   output$git_url <- renderUI({
-    tagList("See the Code:", url)
+    h6(a("GitHub", href="https://github.com/dodomoon/world_military"))
+  })
+  
+  personnel_selection <- reactive({
+    c(input$countries, input$regions, input$income_groups)
   })
   
   output$personnelPlot <- renderPlot({
     personnel %>%
-      filter(country %in% input$countries) %>%
+      filter(country %in% personnel_selection()) %>%
       ggplot(aes(x = year, y = total, color = country)) +
       geom_line() +
       labs(title = "Armed forces personnel, total",
            x = "Year",
-           y = "Total Personnel")
+           y = "Total Personnel") +
+      scale_color_discrete(name = "Country(s)")
   })
   
   output$personnelperPlot <- renderPlot({
     personnel_per %>%
-      filter(country %in% input$countries) %>%
+      filter(country %in% personnel_selection()) %>%
       ggplot(aes(x = year, y = per, color = country)) +
       geom_line() +
       labs(title = "Armed forces personnel, % of total labor force",
            x = "Year",
-           y = "Percentage")
+           y = "Percentage") +
+      scale_color_discrete(name = "Country(s)")
   })
 }
 

@@ -1,0 +1,12 @@
+name: world_military
+title: world_military
+username:
+account: junhomoon
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 592991
+bundleId: 1741408
+url: https://junhomoon.shinyapps.io/world_military/
+when: 1543985027.13037
+asMultiple: FALSE
+asStatic: FALSE

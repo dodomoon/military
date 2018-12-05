@@ -3,6 +3,28 @@ library(shiny)
 library(shinythemes)
 library(tidyverse)
 
+# Armed forces personnel, total
+# International Institute for Strategic Studies, The Military Balance.
+personnel <- read_csv("data/personnel/API_MS.MIL.TOTL.P1_DS2_en_csv_v2_10225185.csv", skip = 4)[, -c(2:4, 63)] %>%
+  # bring multiple columns under single column "year"
+  # convert year into integers
+  gather("year", "total", 2:59, na.rm = TRUE, convert = TRUE) %>%
+  # rename column variable to be more simple
+  rename(country = `Country Name`) %>%
+  # convert total into integers
+  mutate(total = parse_number(total))
+
+# Armed forces personnel (% of total labor force)
+# International Institute for Strategic Studies, The Military Balance.
+personnel_per <- read_csv("data/personnel_per/API_MS.MIL.TOTL.TF.ZS_DS2_en_csv_v2_10224838.csv", skip = 4)[, -c(2:4, 63)] %>%
+  # bring multiple columns under single column "year"
+  # convert year into integers
+  gather("year", "per", 2:59, na.rm = TRUE, convert = TRUE) %>%
+  # rename column variable to be more simple
+  rename(country = `Country Name`) %>%
+  # convert percentage into integers
+  mutate(per = parse_number(per))
+
 # Define UI for application
 ui <- navbarPage(
   title = "World Military Data",
@@ -20,11 +42,11 @@ ui <- navbarPage(
     title = "Personnel",
     sidebarLayout(
       sidebarPanel(
-        textInput("title", "Title", "GDP vs life exp"),
-        numericInput("size", "Point size", 1, 1),
-        checkboxInput("fit", "Add line of best fit", FALSE),
-        radioButtons("colour", "Point colour",
-                     choices = c("blue", "red", "green", "black"))
+        selectInput(inputId = "countries",
+                    label = "Select Country(s)",
+                    choices = personnel$country,
+                    multiple = TRUE,
+                    selected = "United States")
       ),
       mainPanel(
         tabsetPanel(
@@ -33,7 +55,8 @@ ui <- navbarPage(
             plotOutput("personnelPlot")
           ),
           tabPanel(
-            title = "Armed Forces Personnel, % of Total Labor Force"
+            title = "Armed Forces Personnel, % of Total Labor Force",
+            plotOutput("personnelperPlot")
           )
         )
       )
@@ -76,9 +99,24 @@ server <- function(input, output) {
     tagList("See the Code:", url)
   })
   
-  # first plot
   output$personnelPlot <- renderPlot({
+    personnel %>%
+      filter(country %in% input$countries) %>%
+      ggplot(aes(x = year, y = total, color = country)) +
+      geom_line() +
+      labs(title = "Armed forces personnel, total",
+           x = "Year",
+           y = "Total Personnel")
+  })
   
+  output$personnelperPlot <- renderPlot({
+    personnel_per %>%
+      filter(country %in% input$countries) %>%
+      ggplot(aes(x = year, y = per, color = country)) +
+      geom_line() +
+      labs(title = "Armed forces personnel, % of total labor force",
+           x = "Year",
+           y = "Percentage")
   })
 }
 

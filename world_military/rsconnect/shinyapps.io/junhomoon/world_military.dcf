@@ -5,8 +5,8 @@ account: junhomoon
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 592991
-bundleId: 1741408
+bundleId: 1742687
 url: https://junhomoon.shinyapps.io/world_military/
-when: 1543985027.13037
+when: 1544022400.62113
 asMultiple: FALSE
 asStatic: FALSE

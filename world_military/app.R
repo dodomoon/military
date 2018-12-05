@@ -105,6 +105,15 @@ weapon <- read_csv("data/exports/TIV-Export-All-1950-2017-wc.csv", skip=10)[, -7
   group_by(year) %>%
   mutate(per = tiv / total)
 
+expenditure <- read_csv("data/exports/API_MS.MIL.XPRT.KD_DS2_en_csv_v2_10230414.csv", skip = 4)[, -c(2:4, 63)] %>%
+  # bring multiple columns under single column "year"
+  # convert year into integers
+  gather("year", "spending", 2:59, convert = TRUE) %>%
+  # rename column variable to be more simple
+  rename(country = `Country Name`) %>%
+  # in millions
+  mutate(spending = spending / 1000000)
+
 nuke <- read_csv("data/number-of-nuclear-warheads-in-the-inventory-of-the-nuclear-powers.csv") %>%
   rename(n = X4)
 
@@ -176,7 +185,7 @@ ui <- navbarPage(
                         label = "Years",
                         min(imports$year), max(imports$year),
                         step = 1,
-                        value = c(2000, 2010)),
+                        value = c(1990, 2010)),
             selectInput(inputId = "imp_countries",
                         label = "Select Country(s)",
                         # list only countries
@@ -201,7 +210,7 @@ ui <- navbarPage(
                weapons, trucks, small artillery, ammunition, support equipment, technology
                transfers, and other services. Figures are SIPRI Trend Indicator Values (TIVs)
                expressed in US$ million at constant (1990) prices."),
-            h5("A '0' indicates that the value of deliveries is less than 0.5 million"),
+            h5("A '0' indicates that the value of deliveries is less than 0.5 million but still more than 0."),
             h6("Source: Stockholm International Peace Research Institute (SIPRI), Arms Tranfer Database."),
             tags$h6(HTML("<a href='https://github.com/dodomoon/world_military'>GitHub</a>"))
           ),
@@ -218,7 +227,7 @@ ui <- navbarPage(
                         label = "Years",
                         min(imports$year), max(imports$year),
                         step = 1,
-                        value = c(2000, 2010)),
+                        value = c(1990, 2010)),
             numericInput(inputId = "imptop_num",
                          label = "How many countries?",
                          value = 5,
@@ -232,7 +241,7 @@ ui <- navbarPage(
                weapons, trucks, small artillery, ammunition, support equipment, technology
                transfers, and other services. Figures are SIPRI Trend Indicator Values (TIVs)
                expressed in US$ million at constant (1990) prices."),
-            h5("A '0' indicates that the value of deliveries is less than 0.5 million"),
+            h5("A '0' indicates that the value of deliveries is less than 0.5 million but still more than 0."),
             h6("Source: Stockholm International Peace Research Institute (SIPRI), Arms Tranfer Database."),
             tags$h6(HTML("<a href='https://github.com/dodomoon/world_military'>GitHub</a>"))
           ),
@@ -249,7 +258,7 @@ ui <- navbarPage(
                         label = "Years",
                         min(exports$year), max(exports$year),
                         step = 1,
-                        value = c(2000, 2010)),
+                        value = c(1990, 2010)),
             selectInput(inputId = "exp_countries",
                         label = "Select Country(s)",
                         # list only countries
@@ -296,7 +305,7 @@ ui <- navbarPage(
                         label = "Years",
                         min(exports$year), max(exports$year),
                         step = 1,
-                        value = c(2000, 2010)),
+                        value = c(1990, 2010)),
             numericInput(inputId = "exptop_num",
                          label = "How many countries?",
                          value = 5,
@@ -361,18 +370,66 @@ ui <- navbarPage(
       )
     )
   ),
-  # tabPanel(
-  #   title = "Spending",
-  #   tabsetPanel(
-  #     tabPanel(
-  #       title = "Military Expenditure, current USD"
-  #       
-  #     ),
-  #     tabPanel(
-  #       title = "Military Expenditure, % of GDP"
-  #     )
-  #   )
-  # ),
+  tabPanel(
+    title = "Spending",
+    sidebarLayout(
+      sidebarPanel(
+        sliderInput(inputId = "spe_years",
+                    label = "Years",
+                    min(expenditure$year), max(expenditure$year),
+                    step = 1,
+                    value = c(min(expenditure$year), max(expenditure$year))),
+        selectInput(inputId = "spe_countries",
+                    label = "Select Country(s)",
+                    # list only countries
+                    # remove non_countries that are in the country column
+                    choices = expenditure$country[!expenditure$country %in% non_countries$TableName],
+                    multiple = TRUE,
+                    selected = "United States"),
+        selectInput(inputId = "spe_regions",
+                    label = "Select Region(s)",
+                    choices = regions$TableName,
+                    multiple = TRUE),
+        selectInput(inputId = "spe_income_groups",
+                    label = "Select Income Group(s)",
+                    choices = income_groups$IncomeGroup,
+                    multiple = TRUE),
+        h6("Military expenditures data from SIPRI are derived from the NATO definition,
+               which includes all current and capital expenditures on the armed forces,
+               including peacekeeping forces; defense ministries and other government
+               agencies engaged in defense projects; paramilitary forces, if these are
+               judged to be trained and equipped for military operations; and military
+               space activities. Such expenditures include military and civil personnel,
+               including retirement pensions of military personnel and social services
+               for personnel; operation and maintenance; procurement; military research
+               and development; and military aid (in the military expenditures of the donor
+               country). Excluded are civil defense and current expenditures for previous
+               military activities, such as for veterans' benefits, demobilization, conversion,
+               and destruction of weapons."),
+        h6("Income groups are based on GNI per capita calculated using the World Bank Atlas method.
+               Low-income economies are those with GNI per capita of $995 or less in 2017;
+               lower middle-income economies are those with GNI per capita between $996 and $3,895 in 2017;
+               upper middle-income economies are those with GNI per capita between $3,896 and $12,055 in 2017;
+               high-income economies are those with GNI per capita of $12,056 or more in 2017."),
+        h6("Similarily, organizational categories such as OECD and European Union are based
+               on membership status in 2017."),
+        h6("Source: Stockholm International Peace Research Institute (SIPRI), Yearbook: Armaments,
+               Disarmament and International Security."),
+        tags$h6(HTML("<a href='https://github.com/dodomoon/world_military'>GitHub</a>"))
+      ),
+      mainPanel(
+        tabsetPanel(
+          tabPanel(
+            title = "Total",
+            plotOutput("spendingPlot")
+          ),
+          tabPanel(
+            title = "% of GDP"
+          )
+        )
+      )
+    )
+  ),
   tabPanel(
     title = "Nuclear Weapons",
     sidebarLayout(
@@ -414,6 +471,10 @@ server <- function(input, output) {
   
   exports_selection <- reactive({
     c(input$exp_countries, input$exp_regions, input$exp_income_groups)
+  })
+  
+  expenditure_selection <- reactive({
+    c(input$spe_countries, input$spe_regions, input$spe_income_groups)
   })
   
   output$personnelPlot <- renderPlot({
@@ -501,6 +562,18 @@ server <- function(input, output) {
            y = "Total TIV (in millions)")
   })
   
+  output$spendingPlot <- renderPlot({
+    expenditure %>%
+      filter(country %in% expenditure_selection()) %>%
+      filter(year >= input$spe_years[1] & year <= input$spe_years[2]) %>%
+      ggplot(aes(x = year, y = spending, color = country)) +
+      geom_line() +
+      labs(title = "Military spending",
+           x = "Year",
+           y = "Expenditure in USD (in millions)") +
+      scale_color_discrete(name = "Country(s)")
+  })
+  
   output$weaponPlot <- renderPlot({
     weapon %>%
       filter(year >= input$weapon_years[1] & year <= input$weapon_years[2]) %>%
@@ -520,7 +593,7 @@ server <- function(input, output) {
       filter(Entity %in% input$nuke_countries) %>%
       ggplot(aes(x = Year, y = n, fill = Entity)) +
       geom_area() +
-      labs(title = "Number of nuclear warheads in the inventory",
+      labs(title = "Number of nuclear warheads in inventory",
            x = "Year",
            y = "Warheads") +
       scale_fill_discrete(name = "Country(s)")

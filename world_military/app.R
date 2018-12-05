@@ -589,7 +589,7 @@ server <- function(input, output) {
   
   output$nukePlot <- renderPlot({
     nuke %>%
-      filter(Year >= input$weapon_years[1] & Year <= input$weapon_years[2]) %>%
+      filter(Year >= input$nuke_years[1] & Year <= input$nuke_years[2]) %>%
       filter(Entity %in% input$nuke_countries) %>%
       ggplot(aes(x = Year, y = n, fill = Entity)) +
       geom_area() +

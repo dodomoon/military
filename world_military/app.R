@@ -25,12 +25,15 @@ personnel_per <- read_csv("data/personnel_per/API_MS.MIL.TOTL.TF.ZS_DS2_en_csv_v
   # convert percentage into integers
   mutate(per = parse_number(per))
 
+# Metadata from personnel dataset
 personnel_meta <- read_csv("data/personnel/Metadata_Country_API_MS.MIL.TOTL.P1_DS2_en_csv_v2_10225185.csv")[, -c(4, 6)]
 
+# create dataframe of table names that are not countries
 non_countries <- personnel_meta %>%
   filter(is.na(Region)) %>%
   select(TableName)
 
+# create dataframe of regions, excluding insignificant ones
 regions <- non_countries %>%
   filter(!(str_detect(TableName, "\\(")),
          !(str_detect(TableName, "mall states")),
@@ -42,6 +45,7 @@ regions <- non_countries %>%
          TableName != "Euro area",
          TableName != "Least developed countries: UN classification")
 
+# create dataframe of income groups
 income_groups <- personnel_meta %>%
   select(IncomeGroup) %>%
   distinct() %>%
@@ -103,13 +107,59 @@ ui <- navbarPage(
     title = "Arms Trade",
     tabsetPanel(
       tabPanel(
-        title = "Imports"
+        title = "Imports, over time",
+        sidebarLayout(
+          sidebarPanel(
+            
+          ),
+          mainPanel(
+            
+          )
+        )
       ),
       tabPanel(
-        title = "Exports"
+        title = "Top Importers",
+        sidebarLayout(
+          sidebarPanel(
+            
+          ),
+          mainPanel(
+            
+          )
+        )
       ),
       tabPanel(
-        title = "Combined"
+        title = "Exports, over time",
+        sidebarLayout(
+          sidebarPanel(
+            
+          ),
+          mainPanel(
+            
+          )
+        )
+      ),
+      tabPanel(
+        title = "Top Exporters",
+        sidebarLayout(
+          sidebarPanel(
+            
+          ),
+          mainPanel(
+            
+          )
+        )
+      ),
+      tabPanel(
+        title = "By Weapon Category",
+        sidebarLayout(
+          sidebarPanel(
+            
+          ),
+          mainPanel(
+            
+          )
+        )
       )
     )
   ),

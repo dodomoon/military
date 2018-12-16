@@ -4,7 +4,7 @@ library(shinythemes)
 library(tidyverse)
 library(scales)
 
-# Armed forces personnel, total
+# Armed Forces Personnel (Total)
 # International Institute for Strategic Studies, The Military Balance.
 personnel <- read_csv("data/personnel/API_MS.MIL.TOTL.P1_DS2_en_csv_v2_10225185.csv", skip = 4)[, -c(2:4, 63)] %>%
   # bring multiple columns under single column "year"
@@ -15,7 +15,7 @@ personnel <- read_csv("data/personnel/API_MS.MIL.TOTL.P1_DS2_en_csv_v2_10225185.
   # convert total into integers
   mutate(total = parse_number(total))
 
-# Armed forces personnel (% of total labor force)
+# Armed Forces Personnel (% of Total Labor Force)
 # International Institute for Strategic Studies, The Military Balance.
 personnel_per <- read_csv("data/personnel_per/API_MS.MIL.TOTL.TF.ZS_DS2_en_csv_v2_10224838.csv", skip = 4)[, -c(2:4, 63)] %>%
   # bring multiple columns under single column "year"
@@ -53,6 +53,8 @@ income_groups <- personnel_meta %>%
   distinct() %>%
   na.omit()
 
+# Arms Imports
+# Stockholm International Peace Research Institute (SIPRI), Arms Tranfer Database.
 imports <- read_csv("data/imports/TIV-Import-All-1950-2017-rs.csv", skip = 10)[, -70] %>%
   # bring multiple columns under single column "year"
   # convert year into integers
@@ -61,6 +63,8 @@ imports <- read_csv("data/imports/TIV-Import-All-1950-2017-rs.csv", skip = 10)[,
   rename(country = X1) %>%
   filter(country != "Total")
 
+# Arms Exports
+# Stockholm International Peace Research Institute (SIPRI), Arms Tranfer Database.
 exports <- read_csv("data/exports/API_MS.MIL.XPRT.KD_DS2_en_csv_v2_10230414.csv", skip = 4)[, -c(2:4, 63)] %>%
   # bring multiple columns under single column "year"
   # convert year into integers
@@ -70,6 +74,7 @@ exports <- read_csv("data/exports/API_MS.MIL.XPRT.KD_DS2_en_csv_v2_10230414.csv"
   # in millions
   mutate(tiv = tiv / 1000000)
 
+# organizations that imported arms
 orgs <- imports %>%
   # after string splitting by * and taking the second string,
   # if the value is not NA, that means there were originally two asterisks
@@ -77,6 +82,7 @@ orgs <- imports %>%
   # remove the asterisks from the organization names
   mutate(country = sapply(strsplit(country, "\\*"), `[`, 1))
 
+# rebel groups that imported arms
 # rebel groups have only one asterisk (*)
 rebels <- imports %>%
   # filter out every string that has at least one asterisk
@@ -90,9 +96,16 @@ imports <- imports %>%
   # remove the asterisks
   mutate(country = sapply(strsplit(country, "\\*"), `[`, 1))
 
+
+# Arms Trade by Weapon Category
+# Stockholm International Peace Research Institute (SIPRI), Arms Tranfer Database.
 weapon_total <- read_csv("data/exports/TIV-Export-All-1950-2017-wc.csv", skip=10)[, -70] %>%
+  # bring multiple columns under single column "year"
+  # convert year into integers
   gather("year", "tiv", 2:69, convert = TRUE) %>%
+  # rename column variable to be more simple
   rename(type = X1) %>%
+  # filter just the total amoung of arms trade for the year
   filter(type == "Total") %>%
   spread(type, tiv) %>%
   rename(total = Total)
@@ -101,11 +114,15 @@ weapon <- read_csv("data/exports/TIV-Export-All-1950-2017-wc.csv", skip=10)[, -7
   gather("year", "tiv", 2:69, convert = TRUE) %>%
   rename(type = X1) %>%
   filter(type != "Total") %>%
+  # merge the different weapon categories to the total dataframe
   merge(weapon_total, by = "year") %>%
+  # calculate share of category for that year's arms trade
   group_by(year) %>%
   mutate(per = tiv / total)
 
-expenditure <- read_csv("data/exports/API_MS.MIL.XPRT.KD_DS2_en_csv_v2_10230414.csv", skip = 4)[, -c(2:4, 63)] %>%
+# Military Expenditure (Total USD)
+# Stockholm International Peace Research Institute (SIPRI), Yearbook: Armaments, Disarmament and International Security.
+expenditure <- read_csv("data/spending/API_MS.MIL.XPND.CD_DS2_en_csv_v2_10226452.csv", skip = 4)[, -c(2:4, 63)] %>%
   # bring multiple columns under single column "year"
   # convert year into integers
   gather("year", "spending", 2:59, convert = TRUE) %>%
@@ -114,6 +131,20 @@ expenditure <- read_csv("data/exports/API_MS.MIL.XPRT.KD_DS2_en_csv_v2_10230414.
   # in millions
   mutate(spending = spending / 1000000)
 
+# Military Expenditure (% of GDP)
+# Stockholm International Peace Research Institute (SIPRI), Yearbook: Armaments, Disarmament and International Security.
+expenditure_per <- read_csv("data/spending_per/API_MS.MIL.XPND.GD.ZS_DS2_en_csv_v2_10224693.csv", skip = 4)[, -c(2:4, 63)] %>%
+  # bring multiple columns under single column "year"
+  # convert year into integers
+  gather("year", "per", 2:59, convert = TRUE) %>%
+  # rename column variable to be more simple
+  rename(country = `Country Name`) %>%
+  # convert percentage into integers
+  mutate(per = parse_number(per)) %>%
+  mutate(per = per / 100)
+
+# Nuclear Inventory
+# Bulletin of the Atomic Scientists.
 nuke <- read_csv("data/number-of-nuclear-warheads-in-the-inventory-of-the-nuclear-powers.csv") %>%
   rename(n = X4)
 
@@ -129,7 +160,8 @@ ui <- navbarPage(
                     label = "Years",
                     min = 1985, max(personnel$year),
                     step = 1,
-                    value = c(1985, 2017)),
+                    value = c(1985, 2017),
+                    sep = ""),
         selectInput(inputId = "per_countries",
                     label = "Select Country(s)",
                     # list only countries
@@ -185,7 +217,8 @@ ui <- navbarPage(
                         label = "Years",
                         min(imports$year), max(imports$year),
                         step = 1,
-                        value = c(1990, 2010)),
+                        value = c(1990, 2010),
+                        sep = ""),
             selectInput(inputId = "imp_countries",
                         label = "Select Country(s)",
                         # list only countries
@@ -227,7 +260,8 @@ ui <- navbarPage(
                         label = "Years",
                         min(imports$year), max(imports$year),
                         step = 1,
-                        value = c(1990, 2010)),
+                        value = c(1990, 2010),
+                        sep = ""),
             numericInput(inputId = "imptop_num",
                          label = "How many countries?",
                          value = 5,
@@ -258,7 +292,8 @@ ui <- navbarPage(
                         label = "Years",
                         min(exports$year), max(exports$year),
                         step = 1,
-                        value = c(1990, 2010)),
+                        value = c(1990, 2010),
+                        sep = ""),
             selectInput(inputId = "exp_countries",
                         label = "Select Country(s)",
                         # list only countries
@@ -305,7 +340,8 @@ ui <- navbarPage(
                         label = "Years",
                         min(exports$year), max(exports$year),
                         step = 1,
-                        value = c(1990, 2010)),
+                        value = c(1990, 2010),
+                        sep = ""),
             numericInput(inputId = "exptop_num",
                          label = "How many countries?",
                          value = 5,
@@ -335,10 +371,13 @@ ui <- navbarPage(
                         label = "Years",
                         min(weapon$year), max(weapon$year),
                         step = 1,
-                        value = c(min(weapon$year), max(weapon$year))),
+                        value = c(min(weapon$year), max(weapon$year)),
+                        sep = ""),
             checkboxGroupInput(inputId = "weapon_type",
                                label = "Select Weapon Types",
-                               choices = unique(weapon$type)),
+                               # unique entries in weapon types
+                               choices = unique(weapon$type),
+                               selected = unique(weapon$type)),
             h6("Arms transfers cover the supply of military weapons through sales,
                aid, gifts, and those made through manufacturing licenses. Data cover
                major conventional weapons such as aircraft, armored vehicles, artillery,
@@ -378,7 +417,8 @@ ui <- navbarPage(
                     label = "Years",
                     min(expenditure$year), max(expenditure$year),
                     step = 1,
-                    value = c(min(expenditure$year), max(expenditure$year))),
+                    value = c(min(expenditure$year), max(expenditure$year)),
+                    sep = ""),
         selectInput(inputId = "spe_countries",
                     label = "Select Country(s)",
                     # list only countries
@@ -424,7 +464,8 @@ ui <- navbarPage(
             plotOutput("spendingPlot")
           ),
           tabPanel(
-            title = "% of GDP"
+            title = "% of GDP",
+            plotOutput("spendingperPlot")
           )
         )
       )
@@ -438,7 +479,8 @@ ui <- navbarPage(
                     label = "Years",
                     min(nuke$Year), max(nuke$Year),
                     step = 1,
-                    value = c(min(nuke$Year), max(nuke$Year))),
+                    value = c(min(nuke$Year), max(nuke$Year)),
+                    sep = ""),
         selectInput(inputId = "nuke_countries",
                     label = "Select Country(s)",
                     # list only countries
@@ -568,10 +610,23 @@ server <- function(input, output) {
       filter(year >= input$spe_years[1] & year <= input$spe_years[2]) %>%
       ggplot(aes(x = year, y = spending, color = country)) +
       geom_line() +
-      labs(title = "Military spending",
+      labs(title = "Military spending, total USD",
            x = "Year",
            y = "Expenditure in USD (in millions)") +
       scale_color_discrete(name = "Country(s)")
+  })
+  
+  output$spendingperPlot <- renderPlot({
+    expenditure_per %>%
+      filter(country %in% expenditure_selection()) %>%
+      filter(year >= input$spe_years[1] & year <= input$spe_years[2]) %>%
+      ggplot(aes(x = year, y = per, color = country)) +
+      geom_line() +
+      labs(title = "Military spending, % of GDP",
+           x = "Year",
+           y = "Percentage") +
+      scale_color_discrete(name = "Country(s)") +
+      scale_y_continuous(labels = percent)
   })
   
   output$weaponPlot <- renderPlot({

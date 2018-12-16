@@ -503,6 +503,7 @@ ui <- navbarPage(
 
 # Define the server logic
 server <- function(input, output) {
+  # reactive functions that allows for live multiple selections
   personnel_selection <- reactive({
     c(input$per_countries, input$per_regions, input$per_income_groups)
   })
@@ -524,11 +525,11 @@ server <- function(input, output) {
       filter(country %in% personnel_selection()) %>%
       filter(year >= input$per_years[1] & year <= input$per_years[2]) %>%
       ggplot(aes(x = year, y = total, color = country)) +
-      geom_line() +
-      labs(title = "Armed forces personnel, total",
-           x = "Year",
-           y = "Total Personnel") +
-      scale_color_discrete(name = "Country(s)")
+        geom_line() +
+        labs(title = "Armed forces personnel, total",
+             x = "Year",
+             y = "Total Personnel") +
+        scale_color_discrete(name = "Country(s)")
   })
   
   output$personnelperPlot <- renderPlot({
@@ -536,12 +537,12 @@ server <- function(input, output) {
       filter(country %in% personnel_selection()) %>%
       filter(year >= input$per_years[1] & year <= input$per_years[2]) %>%
       ggplot(aes(x = year, y = per, color = country)) +
-      geom_line() +
-      labs(title = "Armed forces personnel, % of total labor force",
-           x = "Year",
-           y = "Percentage") +
-      scale_color_discrete(name = "Country(s)") +
-      scale_y_continuous(labels = percent)
+        geom_line() +
+        labs(title = "Armed forces personnel, % of total labor force",
+             x = "Year",
+             y = "Percentage") +
+        scale_color_discrete(name = "Country(s)") +
+        scale_y_continuous(labels = percent)
   })
   
   output$importOvertime <- renderPlot({
@@ -549,12 +550,12 @@ server <- function(input, output) {
       filter(country %in% imports_selection()) %>%
       filter(year >= input$imp_years[1] & year <= input$imp_years[2]) %>%
       ggplot(aes(x = year, y = tiv, color = country)) +
-      geom_point() +
-      geom_line() +
-      labs(title = "Arms imports over time",
-           x = "Year",
-           y = "SIPRI TIV (in millions)") +
-      scale_color_discrete(name = "Country(s)")
+        geom_point() +
+        geom_line() +
+        labs(title = "Arms imports over time",
+             x = "Year",
+             y = "SIPRI TIV (in millions)") +
+        scale_color_discrete(name = "Country(s)")
   })
   
   output$importTop <- renderPlot({
@@ -566,11 +567,11 @@ server <- function(input, output) {
       arrange(desc(total_tiv)) %>%
       head(input$imptop_num) %>%
       ggplot(aes(x = reorder(country, -total_tiv), y = total_tiv)) +
-      geom_bar(stat = "identity") +
-      geom_text(aes(label = total_tiv), vjust=-0.3, size=3.5) +
-      labs(title = "Top importers",
-           x = "Country",
-           y = "Total TIV (in millions)")
+        geom_bar(stat = "identity", fill = c("#4b5320")) +
+        geom_text(aes(label = total_tiv), vjust=-0.3, size=3.5) +
+        labs(title = "Top importers",
+             x = "Country",
+             y = "Total TIV (in millions)")
   })
   
   output$exportOvertime <- renderPlot({
@@ -578,12 +579,12 @@ server <- function(input, output) {
       filter(country %in% exports_selection()) %>%
       filter(year >= input$exp_years[1] & year <= input$exp_years[2]) %>%
       ggplot(aes(x = year, y = tiv, color = country)) +
-      geom_point() +
-      geom_line() +
-      labs(title = "Arms exports over time",
-           x = "Year",
-           y = "SIPRI TIV (in millions)") +
-      scale_color_discrete(name = "Country(s)")
+        geom_point() +
+        geom_line() +
+        labs(title = "Arms exports over time",
+             x = "Year",
+             y = "SIPRI TIV (in millions)") +
+        scale_color_discrete(name = "Country(s)")
   })
   
   output$exportTop <- renderPlot({
@@ -597,11 +598,11 @@ server <- function(input, output) {
       arrange(desc(total_tiv)) %>%
       head(input$exptop_num) %>%
       ggplot(aes(x = reorder(country, -total_tiv), y = total_tiv)) +
-      geom_bar(stat = "identity") +
-      geom_text(aes(label = total_tiv), vjust=-0.3, size=3.5) +
-      labs(title = "Top exporters",
-           x = "Country",
-           y = "Total TIV (in millions)")
+        geom_bar(stat = "identity", fill = c("#4b5320")) +
+        geom_text(aes(label = total_tiv), vjust=-0.3, size=3.5) +
+        labs(title = "Top exporters",
+             x = "Country",
+             y = "Total TIV (in millions)")
   })
   
   output$spendingPlot <- renderPlot({
@@ -609,11 +610,11 @@ server <- function(input, output) {
       filter(country %in% expenditure_selection()) %>%
       filter(year >= input$spe_years[1] & year <= input$spe_years[2]) %>%
       ggplot(aes(x = year, y = spending, color = country)) +
-      geom_line() +
-      labs(title = "Military spending, total USD",
-           x = "Year",
-           y = "Expenditure in USD (in millions)") +
-      scale_color_discrete(name = "Country(s)")
+        geom_line() +
+        labs(title = "Military spending, total USD",
+             x = "Year",
+             y = "Expenditure in current USD (in millions)") +
+        scale_color_discrete(name = "Country(s)")
   })
   
   output$spendingperPlot <- renderPlot({
@@ -621,12 +622,12 @@ server <- function(input, output) {
       filter(country %in% expenditure_selection()) %>%
       filter(year >= input$spe_years[1] & year <= input$spe_years[2]) %>%
       ggplot(aes(x = year, y = per, color = country)) +
-      geom_line() +
-      labs(title = "Military spending, % of GDP",
-           x = "Year",
-           y = "Percentage") +
-      scale_color_discrete(name = "Country(s)") +
-      scale_y_continuous(labels = percent)
+        geom_line() +
+        labs(title = "Military spending, % of GDP",
+             x = "Year",
+             y = "Percentage") +
+        scale_color_discrete(name = "Country(s)") +
+        scale_y_continuous(labels = percent)
   })
   
   output$weaponPlot <- renderPlot({
@@ -634,12 +635,12 @@ server <- function(input, output) {
       filter(year >= input$weapon_years[1] & year <= input$weapon_years[2]) %>%
       filter(type %in% input$weapon_type) %>%
       ggplot(aes(x = year, y = per, fill = type)) +
-      geom_area() +
-      labs(title = "Share of each weapon type in arms purchases",
-           x = "Year",
-           y = "% of Total TIV") +
-      scale_fill_discrete(name = "Weapon Types") +
-      scale_y_continuous(labels = percent)
+        geom_area() +
+        labs(title = "Share of each weapon type in arms purchases",
+             x = "Year",
+             y = "% of Total TIV") +
+        scale_fill_discrete(name = "Weapon Types") +
+        scale_y_continuous(labels = percent)
   })
   
   output$nukePlot <- renderPlot({

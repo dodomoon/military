@@ -150,33 +150,42 @@ nuke <- read_csv("data/number-of-nuclear-warheads-in-the-inventory-of-the-nuclea
 
 # Define UI for application
 ui <- navbarPage(
+  # title of shiny app
   title = "World Military Data",
+  # UI theme
   theme = shinytheme("sandstone"),
+  # divide into tabs
   tabPanel(
     title = "Personnel",
     sidebarLayout(
       sidebarPanel(
+        # year selection
         sliderInput(inputId = "per_years",
                     label = "Years",
                     min = 1985, max(personnel$year),
                     step = 1,
                     value = c(1985, 2017),
                     sep = ""),
+        # country selection
         selectInput(inputId = "per_countries",
                     label = "Select Country(s)",
                     # list only countries
                     # remove non_countries that are in the country column
                     choices = personnel$country[!personnel$country %in% non_countries$TableName],
                     multiple = TRUE,
+                    # default selection as USA
                     selected = "United States"),
+        # region selection
         selectInput(inputId = "per_regions",
                     label = "Select Region(s)",
                     choices = regions$TableName,
                     multiple = TRUE),
+        # income group selection
         selectInput(inputId = "per_income_groups",
                     label = "Select Income Group(s)",
                     choices = income_groups$IncomeGroup,
                     multiple = TRUE),
+        # data description / clarification
         h6("Armed forces personnel are active duty military personnel, including
            paramilitary forces if the training, organization, equipment, and control
            suggest they may be used to support or replace regular military forces.
@@ -190,9 +199,11 @@ ui <- navbarPage(
         h6("Similarily, organizational categories such as OECD and European Union are based
            on membership status in 2017."),
         h6("Source: International Institute for Strategic Studies, The Military Balance."),
+        # link to Github
         tags$h6(HTML("<a href='https://github.com/dodomoon/world_military'>GitHub</a>"))
       ),
       mainPanel(
+        # two different tabs for two different graphs
         tabsetPanel(
           tabPanel(
             title = "Total",
@@ -213,12 +224,14 @@ ui <- navbarPage(
         title = "Imports over time",
         sidebarLayout(
           sidebarPanel(
+            # year selection
             sliderInput(inputId = "imp_years",
                         label = "Years",
                         min(imports$year), max(imports$year),
                         step = 1,
                         value = c(1990, 2010),
                         sep = ""),
+            # country selection
             selectInput(inputId = "imp_countries",
                         label = "Select Country(s)",
                         # list only countries
@@ -226,15 +239,19 @@ ui <- navbarPage(
                         choices = imports$country[!imports$country %in% orgs$country &
                                                   !imports$country %in% rebels$country],
                         multiple = TRUE,
+                        # default selection as USA
                         selected = "United States"),
+            # rebel group selection
             selectInput(inputId = "imp_rebels",
                         label = "Select Rebel Force(s)",
                         choices = rebels$country,
                         multiple = TRUE),
+            # organization selection
             selectInput(inputId = "imp_orgs",
                         label = "Select International Organization(s)",
                         choices = orgs$country,
                         multiple = TRUE),
+            # data description
             h6("Arms transfers cover the supply of military weapons through sales,
                aid, gifts, and those made through manufacturing licenses. Data cover
                major conventional weapons such as aircraft, armored vehicles, artillery,
@@ -256,17 +273,20 @@ ui <- navbarPage(
         title = "Top Importers",
         sidebarLayout(
           sidebarPanel(
+            # year selection
             sliderInput(inputId = "imptop_years",
                         label = "Years",
                         min(imports$year), max(imports$year),
                         step = 1,
                         value = c(1990, 2010),
                         sep = ""),
+            # number of entries to be shown
             numericInput(inputId = "imptop_num",
                          label = "How many countries?",
                          value = 5,
                          min = 2, max = 15,
                          step = 1),
+            # data description
             h6("Arms transfers cover the supply of military weapons through sales,
                aid, gifts, and those made through manufacturing licenses. Data cover
                major conventional weapons such as aircraft, armored vehicles, artillery,
@@ -277,6 +297,7 @@ ui <- navbarPage(
                expressed in US$ million at constant (1990) prices."),
             h5("A '0' indicates that the value of deliveries is less than 0.5 million but still more than 0."),
             h6("Source: Stockholm International Peace Research Institute (SIPRI), Arms Tranfer Database."),
+            # link to github
             tags$h6(HTML("<a href='https://github.com/dodomoon/world_military'>GitHub</a>"))
           ),
           mainPanel(
@@ -288,12 +309,14 @@ ui <- navbarPage(
         title = "Exports over time",
         sidebarLayout(
           sidebarPanel(
+            # year selection
             sliderInput(inputId = "exp_years",
                         label = "Years",
                         min(exports$year), max(exports$year),
                         step = 1,
                         value = c(1990, 2010),
                         sep = ""),
+            # number of entries to be shown
             selectInput(inputId = "exp_countries",
                         label = "Select Country(s)",
                         # list only countries
@@ -301,14 +324,17 @@ ui <- navbarPage(
                         choices = exports$country[!exports$country %in% non_countries$TableName],
                         multiple = TRUE,
                         selected = "United States"),
+            # region selection
             selectInput(inputId = "exp_regions",
                         label = "Select Region(s)",
                         choices = regions$TableName,
                         multiple = TRUE),
+            # income group selection
             selectInput(inputId = "exp_income_groups",
                         label = "Select Income Group(s)",
                         choices = income_groups$IncomeGroup,
                         multiple = TRUE),
+            # data description
             h6("Arms transfers cover the supply of military weapons through sales,
                aid, gifts, and those made through manufacturing licenses. Data cover
                major conventional weapons such as aircraft, armored vehicles, artillery,
@@ -325,6 +351,7 @@ ui <- navbarPage(
             h6("Similarily, organizational categories such as OECD and European Union are based
                on membership status in 2017."),
             h6("Source: Stockholm International Peace Research Institute (SIPRI), Arms Tranfer Database."),
+            # link to github
             tags$h6(HTML("<a href='https://github.com/dodomoon/world_military'>GitHub</a>"))
           ),
           mainPanel(
@@ -336,17 +363,20 @@ ui <- navbarPage(
         title = "Top Exporters",
         sidebarLayout(
           sidebarPanel(
+            # year selection
             sliderInput(inputId = "exptop_years",
                         label = "Years",
                         min(exports$year), max(exports$year),
                         step = 1,
                         value = c(1990, 2010),
                         sep = ""),
+            # number of entries to be shown
             numericInput(inputId = "exptop_num",
                          label = "How many countries?",
                          value = 5,
                          min = 2, max = 15,
                          step = 1),
+            # data description
             h6("Arms transfers cover the supply of military weapons through sales,
                aid, gifts, and those made through manufacturing licenses. Data cover
                major conventional weapons such as aircraft, armored vehicles, artillery,
@@ -367,17 +397,20 @@ ui <- navbarPage(
         title = "Weapon Category",
         sidebarLayout(
           sidebarPanel(
+            # year selection
             sliderInput(inputId = "weapon_years",
                         label = "Years",
                         min(weapon$year), max(weapon$year),
                         step = 1,
                         value = c(min(weapon$year), max(weapon$year)),
                         sep = ""),
+            # choose weapon categories to be shown
             checkboxGroupInput(inputId = "weapon_type",
                                label = "Select Weapon Types",
                                # unique entries in weapon types
                                choices = unique(weapon$type),
                                selected = unique(weapon$type)),
+            # data description
             h6("Arms transfers cover the supply of military weapons through sales,
                aid, gifts, and those made through manufacturing licenses. Data cover
                major conventional weapons such as aircraft, armored vehicles, artillery,
@@ -387,10 +420,12 @@ ui <- navbarPage(
                transfers, and other services. Figures are SIPRI Trend Indicator Values (TIVs)
                expressed in US$ million at constant (1990) prices."),
             h6("Source: Stockholm International Peace Research Institute (SIPRI), Arms Tranfer Database."),
+            # link to github
             tags$h6(HTML("<a href='https://github.com/dodomoon/world_military'>GitHub</a>"))
           ),
           mainPanel(
             plotOutput("weaponPlot"),
+            # explanation of each weapon category
             h6("Aircraft: all fixed-wing aircraft and helicopters, including unmanned 
                aircraft (UAV/UCAV) with a minimum loaded weight of 20 kg. Exceptions 
                are microlight aircraft, powered and unpowered gliders and target drones."),
@@ -413,27 +448,33 @@ ui <- navbarPage(
     title = "Spending",
     sidebarLayout(
       sidebarPanel(
+        # year selection
         sliderInput(inputId = "spe_years",
                     label = "Years",
                     min(expenditure$year), max(expenditure$year),
                     step = 1,
                     value = c(min(expenditure$year), max(expenditure$year)),
                     sep = ""),
+        # country selection
         selectInput(inputId = "spe_countries",
                     label = "Select Country(s)",
                     # list only countries
                     # remove non_countries that are in the country column
                     choices = expenditure$country[!expenditure$country %in% non_countries$TableName],
                     multiple = TRUE,
+                    # default selection as USA
                     selected = "United States"),
+        # region selection
         selectInput(inputId = "spe_regions",
                     label = "Select Region(s)",
                     choices = regions$TableName,
                     multiple = TRUE),
+        # income group selection
         selectInput(inputId = "spe_income_groups",
                     label = "Select Income Group(s)",
                     choices = income_groups$IncomeGroup,
                     multiple = TRUE),
+        # data description
         h6("Military expenditures data from SIPRI are derived from the NATO definition,
                which includes all current and capital expenditures on the armed forces,
                including peacekeeping forces; defense ministries and other government
@@ -455,6 +496,7 @@ ui <- navbarPage(
                on membership status in 2017."),
         h6("Source: Stockholm International Peace Research Institute (SIPRI), Yearbook: Armaments,
                Disarmament and International Security."),
+        # link to github
         tags$h6(HTML("<a href='https://github.com/dodomoon/world_military'>GitHub</a>"))
       ),
       mainPanel(
@@ -475,23 +517,25 @@ ui <- navbarPage(
     title = "Nuclear Weapons",
     sidebarLayout(
       sidebarPanel(
+        # year selection
         sliderInput(inputId = "nuke_years",
                     label = "Years",
                     min(nuke$Year), max(nuke$Year),
                     step = 1,
                     value = c(min(nuke$Year), max(nuke$Year)),
                     sep = ""),
+        # country selection
         selectInput(inputId = "nuke_countries",
                     label = "Select Country(s)",
-                    # list only countries
-                    # remove rebels and int orgs that are in the country column
                     choices = nuke$Entity,
                     multiple = TRUE,
+                    # default as US and Russia - holds overwhelming majority of world nuclear inventory
                     selected = c("United States", "Russia")),
         h6("Having reached a peak in the late 1980s, the number of nuclear warheads has
             dropped significantly. But more countries now 
             possess them."),
         h6("Source: Bulletin of the Atomic Scientists."),
+        # link to github
         tags$h6(HTML("<a href='https://github.com/dodomoon/world_military'>GitHub</a>"))
       ),
       mainPanel(
@@ -522,13 +566,16 @@ server <- function(input, output) {
   
   output$personnelPlot <- renderPlot({
     personnel %>%
+      # use reactive function to select specific countries
       filter(country %in% personnel_selection()) %>%
+      # use selected years to show specific timeframe
       filter(year >= input$per_years[1] & year <= input$per_years[2]) %>%
       ggplot(aes(x = year, y = total, color = country)) +
         geom_line() +
         labs(title = "Armed forces personnel, total",
              x = "Year",
              y = "Total Personnel") +
+        # label legend
         scale_color_discrete(name = "Country(s)")
   })
   
@@ -565,6 +612,7 @@ server <- function(input, output) {
       group_by(country) %>%
       summarize(total_tiv = sum(tiv)) %>%
       arrange(desc(total_tiv)) %>%
+      # choose the top X countries
       head(input$imptop_num) %>%
       ggplot(aes(x = reorder(country, -total_tiv), y = total_tiv)) +
         geom_bar(stat = "identity", fill = c("#4b5320")) +
